@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nilai dan Norma Sosial - Sosiologi EduGame</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700&display=swap');
+
+        :root {
+            --water-top: #4facfe;
+            --water-bottom: #00f2fe;
+            --leaf-green: #4ade80;
+            --leaf-dark: #22c55e;
+            --text-color: #ffffff;
+            --bg-menu: rgba(255, 255, 255, 0.9);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(180deg, var(--water-top) 0%, var(--water-bottom) 100%);
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-color);
+        }
+
+        /* Canvas Background (Rain) */
+        #rain-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* UI Controls */
+        .global-controls {
+            position: absolute;
+            top: 10px; right: 10px;
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+
+        button.icon-btn {
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid white;
+            border-radius: 50%;
+            width: 45px; height: 45px;
+            font-size: 20px;
+            color: white;
+            cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+            transition: transform 0.2s, background 0.2s;
+        }
+        button.icon-btn:hover { background: rgba(255, 255, 255, 0.5); transform: scale(1.1); }
+
+        /* Main Menu */
+        #main-menu {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 50, 100, 0.6);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+        }
+
+        .menu-box {
+            background: var(--bg-menu);
+            padding: 40px;
+            border-radius: 30px;
+            color: #333;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            max-width: 900px;
+            width: 90%;
+            border: 6px solid #fff;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .menu-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .menu-title-img {
+            width: 100%;
+            max-width: 350px;
+            filter: drop-shadow(3px 3px 0px rgba(0,0,0,0.1));
+        }
+
+        .mascot-img {
+            width: 100%;
+            max-width: 350px;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.3));
+        }
+
+        .menu-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .menu-right p { 
+            font-size: 1.3rem; 
+            margin-bottom: 30px; 
+            color: #555; 
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .mode-buttons { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+        }
+
+        .mode-btn {
+            background: var(--leaf-green);
+            border: none;
+            border-bottom: 6px solid var(--leaf-dark);
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            font-family: 'Fredoka One', cursive;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.1s;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        .mode-btn:active { transform: translateY(6px); border-bottom: 0 solid var(--leaf-dark); margin-bottom: 6px; }
+
+        @media (max-width: 768px) {
+            .menu-box {
+                flex-direction: column;
+                padding: 30px 20px;
+                text-align: center;
+                gap: 20px;
+            }
+            .menu-right { text-align: center; align-items: center; }
+            .mascot-img { max-width: 200px; }
+            .menu-title-img { max-width: 250px; }
+        }
+
+        /* Creator Credit & Socials */
+        .creator-credit {
+            margin-top: 25px;
+            text-align: center;
+            color: #64748b; 
+            font-family: 'Nunito', sans-serif;
+            z-index: 55;
+        }
+        .creator-credit p {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        .social-links {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+        .social-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+        }
+        .social-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+        .social-btn.ig:hover { background-color: #fce7f3; color: #db2777; border-color: #fbcfe8; }
+        .social-btn.tiktok:hover { background-color: #dbeafe; color: #3b82f6; border-color: #bfdbfe; }
+        .social-btn.fb:hover { background-color: #e0e7ff; color: #4f46e5; border-color: #c7d2fe; }
+        .social-btn.yt:hover { background-color: #fee2e2; color: #dc2626; border-color: #fecaca; }
+
+        /* Game Container */
+        #game-container {
+            display: none;
+            width: 100%; height: 100%;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+            overflow-y: auto; 
+        }
+
+        /* Layout Grid */
+        .layout-solo { display: flex; justify-content: center; align-items: center; }
+        .layout-solo .pads-container {
+            grid-template-columns: repeat(2, 1fr); /* Diubah jadi 2x2 agar muat teks panjang */
+            grid-template-rows: 1fr 1fr;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .layout-duel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .layout-squad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; } 
+
+        /* Penyesuaian ukuran elemen khusus mode Squad agar muat di kolom yang sempit */
+        .layout-squad .pad-wrapper { width: 100%; height: 80px; }
+        .layout-squad .pad { width: 95%; height: 70px; font-size: 0.8rem; padding: 5px; }
+        .layout-squad .question-area { font-size: 1rem; min-height: 50px; padding: 5px; }
+        .layout-squad .board-header { padding: 10px; font-size: 0.9rem; flex-direction: column; align-items: center; gap: 5px; }
+        .layout-squad .frog { width: 45px; bottom: 15px; }
+        .layout-squad .start-pad { width: 70px; height: 35px; bottom: 5px; }
+
+        @media (max-width: 768px) {
+            .layout-duel { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+            .layout-squad { grid-template-columns: 1fr 1fr; } 
+            .layout-solo .pads-container { gap: 10px; }
+            #game-container { padding: 10px; }
+        }
+
+        /* Player Board */
+        .player-board {
+            background: rgba(255, 255, 255, 0.15);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            display: flex; flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            width: 100%; height: 100%;
+            max-width: 900px; 
+            min-height: 400px; 
+            margin: 0 auto;
+            backdrop-filter: blur(2px);
+        }
+
+        .layout-solo .player-board {
+            max-width: 100%;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            backdrop-filter: none;
+        }
+
+        /* Header (Name & Score) */
+        .board-header {
+            display: flex; justify-content: space-between;
+            padding: 15px 25px;
+            background: rgba(0, 0, 0, 0.2);
+            font-size: 1.2rem;
+            font-family: 'Fredoka One', cursive;
+        }
+
+        /* Question Area */
+        .question-area {
+            text-align: center;
+            padding: 15px;
+            font-size: 1.4rem; /* Diperkecil agar kalimat muat */
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+            min-height: 80px;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .question-area { font-size: 1.1rem; padding: 10px; min-height: 60px; }
+            .board-header { padding: 10px 15px; font-size: 1rem; }
+        }
+
+        /* Play Area (Water & Pads) */
+        .play-area {
+            flex-grow: 1;
+            position: relative;
+        }
+
+        .pads-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 15px;
+            padding: 20px;
+            height: calc(100% - 100px);
+            justify-items: center;
+            align-items: center;
+        }
+
+        .pad-wrapper {
+            position: relative;
+            width: 100%; height: 100px; /* Diperlebar agar teks muat */
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .pad {
+            width: 95%; height: 80px;
+            background: var(--leaf-green);
+            border-radius: 40px; /* Bentuk oval / daun panjang */
+            border-bottom: 6px solid var(--leaf-dark);
+            display: flex; justify-content: center; align-items: center;
+            text-align: center;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #004d00;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            position: absolute;
+            z-index: 2;
+            padding: 10px;
+            line-height: 1.2;
+        }
+
+        .pad:active { transform: scale(0.95); }
+        .pad.correct { background: #6ee7b7; border-color: #059669; }
+        .pad.wrong { background: #fca5a5; border-color: #dc2626; }
+
+        @media (max-width: 480px) {
+            .pad-wrapper { height: 85px; }
+            .pad { height: 75px; font-size: 0.85rem; padding: 5px; border-radius: 30px; }
+        }
+
+        /* Start Pad (Daun pijakan awal) */
+        .start-pad {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px; height: 60px;
+            background: var(--leaf-green);
+            border-radius: 50%;
+            border-bottom: 6px solid var(--leaf-dark);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        /* Frog */
+        .frog {
+            width: 70px;
+            height: auto;
+            position: absolute;
+            bottom: 30px; 
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            transition: all 0.5s ease-in-out;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+        }
+
+        @media (max-width: 480px) { 
+            .frog { width: 55px; bottom: 25px; } 
+            .start-pad { width: 90px; height: 45px; bottom: 5px; }
+        }
+
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        .pad { animation: float 3s ease-in-out infinite; }
+        .pad-wrapper:nth-child(2) .pad { animation-delay: 0.5s; }
+        .pad-wrapper:nth-child(3) .pad { animation-delay: 1s; }
+        .pad-wrapper:nth-child(4) .pad { animation-delay: 1.5s; }
+
+        @keyframes sink {
+            0% { transform: scale(1) translateY(0); opacity: 1; }
+            100% { transform: scale(0.2) translateY(50px); opacity: 0; }
+        }
+        .sinking { animation: sink 0.6s forwards; }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
+            50% { transform: translateX(-50%) translateY(-20px) scale(1.1); }
+        }
+        .bouncing { animation: bounce 0.3s; }
+
+        /* Splash & Ripple Effects */
+        .ripple {
+            position: absolute;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            animation: rippleAnim 0.6s ease-out forwards;
+            pointer-events: none;
+            z-index: 4;
+        }
+        @keyframes rippleAnim {
+            to { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+        }
+
+        .splash-particle {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            width: 8px; height: 8px;
+            pointer-events: none;
+            z-index: 6;
+        }
+
+        /* Grass Effect */
+        #grass-container {
+            position: absolute;
+            bottom: -5px;
+            left: -20px;
+            width: calc(100% + 40px);
+            height: 80px;
+            pointer-events: none;
+            z-index: 20;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .grass-blade {
+            width: 8px;
+            background: linear-gradient(to top, #064e3b, #22c55e);
+            border-top-left-radius: 50%;
+            border-top-right-radius: 50%;
+            transform-origin: bottom center;
+            animation: sway ease-in-out infinite alternate;
+        }
+        @keyframes sway {
+            0% { transform: rotate(-15deg); }
+            100% { transform: rotate(15deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="rain-canvas"></canvas>
+
+    <div class="global-controls">
+        <button class="icon-btn" id="btn-audio" title="Toggle Sound">🔊</button>
+        <button class="icon-btn" id="btn-fullscreen" title="Full Screen">⛶</button>
+        <button class="icon-btn" id="btn-menu" style="display:none;" title="Menu Utama">🏠</button>
+    </div>
+
+    <div id="main-menu">
+        <div class="menu-box">
+            <div class="menu-left">
+                <img src="https://i.imgur.com/oq4D9f3.png" alt="Froggy Jumps" class="menu-title-img">
+                <img src="https://i.imgur.com/8t4Zr2o.png" alt="Froggy Mascot" class="mascot-img">
+            </div>
+            <div class="menu-right">
+                <p>Pilih mode game Kamu !</p>
+                <div class="mode-buttons">
+                    <button class="mode-btn" onclick="startGame('solo')">👤 Solo Mode</button>
+                    <button class="mode-btn" onclick="startGame('duel')" style="background:#3b82f6; border-color:#1d4ed8;">⚔️ Duel Mode</button>
+                    <button class="mode-btn" onclick="startGame('squad')" style="background:#eab308; border-color:#a16207;">👨‍👩‍👧‍👦 Squad Mode</button>
+                </div>
+                
+                <div class="creator-credit">
+                    <p>Karya : Noviyalpg</p>
+                    <div class="social-links">
+                        <a href="https://s.id/ig-noviyalpg" class="social-btn ig" title="Instagram" target="_blank">
+                            <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                        </a>
+                        <a href="https://www.tiktok.com/@noviya.lpg?_t=ZS-8tafgg6Eeyl&amp;_r=1" class="social-btn tiktok" title="TikTok" target="_blank">
+                            <svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1.04-.1z"/></svg>
+                        </a>
+                        <a href="https://www.facebook.com/noviyalpg/" class="social-btn fb" title="Facebook" target="_blank">
+                            <svg viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+                        </a>
+                        <a href="https://s.id/youtube-noviyalpg" class="social-btn yt" title="YouTube" target="_blank">
+                            <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-container"></div>
+    <div id="grass-container"></div>
+
+    <script>
+        /* --- Audio Synthesizer --- */
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        let isAudioEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        const SoundEngine = {
+            playTone: (freq, type, duration, vol=0.1) => {
+                if (!isAudioEnabled || !audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            },
+            jump: () => {
+                if (!isAudioEnabled || !audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+            },
+            correct: () => {
+                if (!isAudioEnabled || !audioCtx) return;
+                SoundEngine.playTone(600, 'sine', 0.1, 0.1);
+                setTimeout(() => SoundEngine.playTone(800, 'sine', 0.2, 0.1), 100);
+            },
+            splash: () => {
+                if (!isAudioEnabled || !audioCtx) return;
+                const bufferSize = audioCtx.sampleRate * 0.3; 
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1000, audioCtx.currentTime);
+                filter.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start();
+            }
+        };
+
+        document.getElementById('btn-audio').addEventListener('click', (e) => {
+            isAudioEnabled = !isAudioEnabled;
+            e.target.innerText = isAudioEnabled ? '🔊' : '🔇';
+            if(isAudioEnabled) initAudio();
+        });
+
+        document.getElementById('btn-fullscreen').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        document.getElementById('btn-menu').addEventListener('click', () => {
+            document.getElementById('game-container').innerHTML = '';
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'flex';
+            document.getElementById('btn-menu').style.display = 'none';
+        });
+
+        /* --- Visual Effects --- */
+        const canvas = document.getElementById('rain-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        let rainRipples = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        for (let i = 0; i < 50; i++) {
+            particles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                l: Math.random() * 10 + 10,
+                xs: -2 + Math.random() * 2,
+                ys: Math.random() * 5 + 10,
+                targetY: height - Math.random() * 150
+            });
+        }
+
+        function drawRain() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 1;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            for (let i = 0; i < particles.length; i++) {
+                let p = particles[i];
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x + p.xs, p.y + p.ys);
+                p.x += p.xs;
+                p.y += p.ys;
+                if (p.y > p.targetY) {
+                    rainRipples.push({ x: p.x, y: p.y, radius: 1, alpha: 0.6 });
+                    p.x = Math.random() * width;
+                    p.y = -20;
+                    p.targetY = height - Math.random() * 150;
+                }
+            }
+            ctx.stroke();
+
+            for(let i = rainRipples.length - 1; i >= 0; i--) {
+                let r = rainRipples[i];
+                ctx.beginPath();
+                ctx.ellipse(r.x, r.y, r.radius * 2, r.radius, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${r.alpha})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                r.radius += 0.5;
+                r.alpha -= 0.015;
+                if(r.alpha <= 0) rainRipples.splice(i, 1);
+            }
+            requestAnimationFrame(drawRain);
+        }
+        drawRain();
+
+        const grassContainer = document.getElementById('grass-container');
+        function generateGrass() {
+            grassContainer.innerHTML = '';
+            const numGrass = Math.floor(window.innerWidth / 15);
+            for(let i = 0; i < numGrass; i++) {
+                let grass = document.createElement('div');
+                grass.className = 'grass-blade';
+                let h = 30 + Math.random() * 50;
+                let duration = 2 + Math.random() * 2;
+                let delay = Math.random() * 2;
+                grass.style.height = `${h}px`;
+                grass.style.animationDuration = `${duration}s`;
+                grass.style.animationDelay = `-${delay}s`;
+                grassContainer.appendChild(grass);
+            }
+        }
+        generateGrass();
+        window.addEventListener('resize', generateGrass);
+
+        function createSplash(x, y, container) {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.width = '60px';
+            ripple.style.height = '60px';
+            container.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+
+            for(let i=0; i<6; i++) {
+                const p = document.createElement('div');
+                p.className = 'splash-particle';
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 30 + 20;
+                const tx = Math.cos(angle) * velocity;
+                const ty = Math.sin(angle) * velocity - 20;
+                p.animate([
+                    { transform: `translate(0, 0) scale(1)`, opacity: 1 },
+                    { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+                ], { duration: 400, easing: 'ease-out', fill: 'forwards' });
+                container.appendChild(p);
+                setTimeout(() => p.remove(), 400);
+            }
+        }
+
+        /* --- Question Engine (Sosiologi) --- */
+        const QUESTION_BANK = [
+            { q: "Nilai sosial adalah…", opts: ["Aturan tertulis dalam masyarakat", "Sesuatu yang dianggap baik dan buruk oleh masyarakat", "Kebiasaan individu", "Hukum negara"], ans: "Sesuatu yang dianggap baik dan buruk oleh masyarakat" },
+            { q: "Norma sosial berfungsi untuk…", opts: ["Menghapus budaya", "Mengatur perilaku masyarakat", "Menambah konflik", "Membatasi kebebasan berpikir"], ans: "Mengatur perilaku masyarakat" },
+            { q: "Contoh nilai material adalah…", opts: ["Kejujuran", "Uang", "Kesopanan", "Keadilan"], ans: "Uang" },
+            { q: "Nilai yang berkaitan dengan keindahan disebut…", opts: ["Nilai vital", "Nilai material", "Nilai estetika", "Nilai moral"], ans: "Nilai estetika" },
+            { q: "Norma yang bersumber dari Tuhan disebut…", opts: ["Norma hukum", "Norma kesopanan", "Norma agama", "Norma kebiasaan"], ans: "Norma agama" },
+            { q: "Contoh norma kesopanan adalah…", opts: ["Tidak mencuri", "Berdoa sebelum makan", "Mengucapkan salam", "Membayar pajak"], ans: "Mengucapkan salam" },
+            { q: "Sanksi norma hukum adalah…", opts: ["Teguran", "Denda atau penjara", "Dikucilkan", "Rasa bersalah"], ans: "Denda atau penjara" },
+            { q: "Nilai yang dianggap penting untuk kelangsungan hidup disebut…", opts: ["Nilai vital", "Nilai estetika", "Nilai moral", "Nilai budaya"], ans: "Nilai vital" },
+            { q: "Contoh norma kesusilaan adalah…", opts: ["Tidak berkata kasar", "Tidak mencuri", "Menghormati orang tua", "Memakai seragam"], ans: "Menghormati orang tua" },
+            { q: "Ciri norma adalah…", opts: ["Tidak mengikat", "Memiliki sanksi", "Bersifat bebas", "Tidak berlaku umum"], ans: "Memiliki sanksi" },
+            { q: "Nilai sosial bersifat…", opts: ["Tetap selamanya", "Berubah-ubah", "Tidak penting", "Individual"], ans: "Berubah-ubah" },
+            { q: "Norma yang berasal dari hati nurani disebut…", opts: ["Norma hukum", "Norma agama", "Norma kesusilaan", "Norma kebiasaan"], ans: "Norma kesusilaan" },
+            { q: "Contoh pelanggaran norma hukum adalah…", opts: ["Berbohong", "Tidak sopan", "Mencuri", "Tidak memberi salam"], ans: "Mencuri" },
+            { q: "Nilai sosial berfungsi sebagai…", opts: ["Pengendali perilaku", "Penghapus konflik", "Pembentuk hukum", "Pengatur ekonomi"], ans: "Pengendali perilaku" },
+            { q: "Norma yang tidak tertulis disebut…", opts: ["Norma hukum", "Norma kebiasaan", "Norma resmi", "Norma negara"], ans: "Norma kebiasaan" },
+            { q: "Contoh nilai moral adalah…", opts: ["Kekayaan", "Kejujuran", "Kekuasaan", "Keindahan"], ans: "Kejujuran" },
+            { q: "Norma hukum bersifat…", opts: ["Tidak tegas", "Memaksa", "Bebas", "Fleksibel"], ans: "Memaksa" },
+            { q: "Contoh norma agama adalah…", opts: ["Membayar pajak", "Beribadah", "Menghormati guru", "Antre"], ans: "Beribadah" },
+            { q: "Nilai sosial berasal dari…", opts: ["Individu", "Masyarakat", "Pemerintah", "Sekolah"], ans: "Masyarakat" },
+            { q: "Norma berfungsi untuk…", opts: ["Membuat masyarakat kacau", "Mengatur tingkah laku", "Menghilangkan nilai", "Membatasi pendidikan"], ans: "Mengatur tingkah laku" },
+            { q: "Contoh nilai vital adalah…", opts: ["Buku", "Uang", "Kesehatan", "Rumah"], ans: "Kesehatan" },
+            { q: "Norma kesopanan bersumber dari…", opts: ["Negara", "Masyarakat", "Tuhan", "Hukum"], ans: "Masyarakat" },
+            { q: "Sanksi norma kesusilaan adalah…", opts: ["Penjara", "Denda", "Rasa bersalah", "Teguran"], ans: "Rasa bersalah" },
+            { q: "Nilai sosial dapat memengaruhi…", opts: ["Cuaca", "Perilaku", "Alam", "Teknologi"], ans: "Perilaku" },
+            { q: "Contoh norma kebiasaan adalah…", opts: ["Salat", "Mengantre", "Tidak mencuri", "Membayar pajak"], ans: "Mengantre" },
+            { q: "Nilai sosial bersifat relatif artinya…", opts: ["Sama di semua tempat", "Berbeda-beda", "Tidak berubah", "Tidak penting"], ans: "Berbeda-beda" },
+            { q: "Norma hukum dibuat oleh…", opts: ["Individu", "Masyarakat", "Pemerintah", "Keluarga"], ans: "Pemerintah" },
+            { q: "Contoh pelanggaran norma kesopanan adalah…", opts: ["Berbohong", "Tidak antre", "Mencuri", "Membunuh"], ans: "Tidak antre" },
+            { q: "Nilai yang berkaitan dengan baik buruk disebut…", opts: ["Estetika", "Moral", "Material", "Vital"], ans: "Moral" },
+            { q: "Norma memiliki tujuan untuk…", opts: ["Membatasi kreativitas", "Menciptakan ketertiban", "Menghilangkan nilai", "Mengatur ekonomi"], ans: "Menciptakan ketertiban" },
+            { q: "Nilai budaya adalah…", opts: ["Nilai yang bersifat universal", "Nilai yang berkembang dalam masyarakat", "Nilai individu", "Nilai negara"], ans: "Nilai yang berkembang dalam masyarakat" },
+            { q: "Contoh norma hukum di sekolah adalah…", opts: ["Menghormati guru", "Tidak menyontek", "Datang tepat waktu", "Menggunakan seragam"], ans: "Menggunakan seragam" },
+            { q: "Norma yang paling tegas sanksinya adalah…", opts: ["Norma agama", "Norma kesopanan", "Norma hukum", "Norma kebiasaan"], ans: "Norma hukum" },
+            { q: "Nilai sosial dapat diwariskan melalui…", opts: ["Teknologi", "Sosialisasi", "Politik", "Ekonomi"], ans: "Sosialisasi" },
+            { q: "Contoh nilai estetika adalah…", opts: ["Keindahan lukisan", "Keadilan", "Kejujuran", "Kedisiplinan"], ans: "Keindahan lukisan" },
+            { q: "Norma berfungsi sebagai pedoman…", opts: ["Berpikir", "Bertindak", "Bermain", "Belajar"], ans: "Bertindak" },
+            { q: "Nilai sosial yang bersifat abstrak artinya…", opts: ["Tidak nyata", "Mudah dilihat", "Berwujud", "Konkret"], ans: "Tidak nyata" },
+            { q: "Norma kesusilaan berkaitan dengan…", opts: ["Hukum", "Agama", "Hati nurani", "Negara"], ans: "Hati nurani" },
+            { q: "Contoh nilai material adalah…", opts: ["Rumah", "Kejujuran", "Kesopanan", "Moral"], ans: "Rumah" },
+            { q: "Norma sosial berlaku untuk…", opts: ["Individu saja", "Kelompok tertentu", "Seluruh masyarakat", "Pemerintah"], ans: "Seluruh masyarakat" },
+            { q: "Sanksi norma kesopanan biasanya berupa…", opts: ["Penjara", "Teguran", "Denda", "Hukuman mati"], ans: "Teguran" },
+            { q: "Nilai sosial membantu menciptakan…", opts: ["Konflik", "Ketertiban", "Kekacauan", "Persaingan"], ans: "Ketertiban" },
+            { q: "Norma agama bersifat…", opts: ["Tidak wajib", "Mutlak", "Fleksibel", "Bebas"], ans: "Mutlak" },
+            { q: "Contoh norma kesusilaan adalah…", opts: ["Tidak mencuri", "Membayar pajak", "Mengantre", "Beribadah"], ans: "Tidak mencuri" },
+            { q: "Nilai sosial memengaruhi…", opts: ["Cuaca", "Perilaku manusia", "Alam", "Teknologi"], ans: "Perilaku manusia" },
+            { q: "Norma hukum memiliki sifat…", opts: ["Lemah", "Tidak tegas", "Mengikat dan memaksa", "Bebas"], ans: "Mengikat dan memaksa" },
+            { q: "Contoh norma agama adalah…", opts: ["Menghormati guru", "Berdoa", "Mengantre", "Tidak membuang sampah"], ans: "Berdoa" },
+            { q: "Nilai sosial terbentuk dari…", opts: ["Kebiasaan masyarakat", "Teknologi", "Politik", "Ekonomi"], ans: "Kebiasaan masyarakat" },
+            { q: "Norma sosial penting karena…", opts: ["Membatasi manusia", "Mengatur kehidupan", "Menghambat perkembangan", "Mengurangi interaksi"], ans: "Mengatur kehidupan" },
+            { q: "Hubungan nilai dan norma adalah…", opts: ["Tidak berkaitan", "Norma berasal dari nilai", "Nilai berasal dari norma", "Keduanya bertentangan"], ans: "Norma berasal dari nilai" }
+        ];
+
+        class QuestionEngine {
+            static getShuffledBank() {
+                // Copy array dan acak urutannya agar beda tiap player
+                return [...QUESTION_BANK].sort(() => Math.random() - 0.5);
+            }
+        }
+
+        class PlayerInstance {
+            constructor(id, name, containerDiv) {
+                this.id = id;
+                this.name = name;
+                this.score = 0;
+                this.isAnimating = false;
+                this.questionPool = QuestionEngine.getShuffledBank();
+                
+                this.dom = document.createElement('div');
+                this.dom.className = 'player-board';
+                this.dom.innerHTML = `
+                    <div class="board-header">
+                        <span>${this.name}</span>
+                        <span>⭐ <span class="score-text">0</span></span>
+                    </div>
+                    <div class="question-area">-</div>
+                    <div class="play-area">
+                        <div class="pads-container">
+                            <div class="pad-wrapper"><div class="pad" data-idx="0"></div></div>
+                            <div class="pad-wrapper"><div class="pad" data-idx="1"></div></div>
+                            <div class="pad-wrapper"><div class="pad" data-idx="2"></div></div>
+                            <div class="pad-wrapper"><div class="pad" data-idx="3"></div></div>
+                        </div>
+                        <div class="start-pad"></div>
+                        <img class="frog" src="https://i.imgur.com/KUiSfis.png" alt="Katak">
+                    </div>
+                `;
+                containerDiv.appendChild(this.dom);
+
+                this.scoreEl = this.dom.querySelector('.score-text');
+                this.questionEl = this.dom.querySelector('.question-area');
+                this.pads = this.dom.querySelectorAll('.pad');
+                this.frog = this.dom.querySelector('.frog');
+                this.playArea = this.dom.querySelector('.play-area');
+
+                this.pads.forEach(pad => {
+                    pad.addEventListener('pointerdown', (e) => this.handleAnswer(e, pad));
+                });
+
+                this.nextQuestion();
+            }
+
+            nextQuestion() {
+                // Reset/isi ulang pool jika soal habis
+                if (this.questionPool.length === 0) {
+                    this.questionPool = QuestionEngine.getShuffledBank();
+                }
+                
+                // Ambil soal teratas (karena sudah diacak)
+                this.currentQ = this.questionPool.pop();
+                this.questionEl.innerText = this.currentQ.q;
+                
+                // Acak pilihan ganda
+                let shuffledOptions = [...this.currentQ.opts].sort(() => Math.random() - 0.5);
+                
+                this.pads.forEach((pad, i) => {
+                    pad.innerText = shuffledOptions[i];
+                    pad.dataset.val = shuffledOptions[i]; // simpan nilai utk verifikasi aman
+                    pad.classList.remove('sinking', 'correct', 'wrong');
+                    pad.style.display = 'flex';
+                });
+                
+                this.frog.style.transform = `translateX(-50%) translateY(0)`;
+                this.frog.classList.remove('sinking');
+                this.frog.style.opacity = '1';
+                this.isAnimating = false;
+            }
+
+            handleAnswer(e, padEl) {
+                if (this.isAnimating) return;
+                this.isAnimating = true;
+
+                const selectedVal = padEl.dataset.val;
+                const isCorrect = selectedVal === this.currentQ.ans;
+
+                const padRect = padEl.getBoundingClientRect();
+                const playRect = this.playArea.getBoundingClientRect();
+                const targetX = (padRect.left - playRect.left) + (padRect.width / 2);
+                const targetY = (padRect.top - playRect.top) + (padRect.height / 2);
+                
+                SoundEngine.jump();
+                this.frog.classList.add('bouncing');
+                
+                const startX = playRect.width / 2;
+                const startY = playRect.height - 60; 
+                const moveX = targetX - startX;
+                const moveY = targetY - startY;
+
+                this.frog.style.transform = `translateX(calc(-50% + ${moveX}px)) translateY(${moveY}px)`;
+
+                setTimeout(() => {
+                    this.frog.classList.remove('bouncing');
+                    
+                    if (isCorrect) {
+                        SoundEngine.correct();
+                        padEl.classList.add('correct');
+                        this.score += 10;
+                        this.scoreEl.innerText = this.score;
+                        
+                        this.pads.forEach(p => {
+                            if(p !== padEl) p.classList.add('sinking');
+                        });
+
+                        setTimeout(() => this.nextQuestion(), 800);
+                    } else {
+                        SoundEngine.splash();
+                        padEl.classList.add('wrong');
+                        this.score = Math.max(0, this.score - 5);
+                        this.scoreEl.innerText = this.score;
+                        
+                        this.frog.classList.add('sinking');
+                        createSplash(targetX, targetY, this.playArea);
+
+                        setTimeout(() => this.nextQuestion(), 1200);
+                    }
+                }, 300); 
+            }
+        }
+
+        let players = [];
+
+        function startGame(mode) {
+            initAudio(); 
+            
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('btn-menu').style.display = 'flex';
+            
+            const container = document.getElementById('game-container');
+            container.style.display = 'grid';
+            container.innerHTML = ''; 
+            container.className = `layout-${mode}`;
+
+            players = [];
+            
+            let numPlayers = 1;
+            if (mode === 'duel') numPlayers = 2;
+            if (mode === 'squad') numPlayers = 4;
+
+            const colors = ['#f43f5e', '#3b82f6', '#eab308', '#a855f7']; 
+
+            for (let i = 0; i < numPlayers; i++) {
+                let p = new PlayerInstance(i, `Player ${i+1}`, container);
+                p.dom.querySelector('.board-header').style.backgroundColor = colors[i] + '40'; 
+                p.dom.style.borderColor = colors[i];
+                players.push(p);
+            }
+        }
+
+    </script>
+</body>
+</html>
